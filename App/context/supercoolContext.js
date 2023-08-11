@@ -10,10 +10,27 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
 
 import { getDatabase, ref, set } from "firebase/database";
+import { ZDK, ZDKNetwork, ZDKChain } from "@zoralabs/zdk";
+
 export const SupercoolAuthContext = createContext(undefined);
 
 export const SupercoolAuthContextProvider = (props) => {
 
+  const networkInfo = {
+    network: ZDKNetwork.Zora,
+    chain: ZDKChain.ZoraGoerli,
+  }
+
+  const API_ENDPOINT = "https://api.zora.co/graphql";
+  // const API_ENDPOINT = "https://api.thegraph.com/subgraphs/name/kolber/zora-create-goerli";
+  const args = {
+    endPoint: API_ENDPOINT,
+    networks: [networkInfo],
+    // apiKey: process.env.API_KEY
+  }
+
+  const zdk = new ZDK(args)
+  // console.log(zdk);
   const [walletConnected, setWalletConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [allNfts, setAllNfts] = useState([]);
@@ -23,11 +40,33 @@ export const SupercoolAuthContextProvider = (props) => {
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
 
-  console.log(allNfts);
+  // console.log(allNfts);
   useEffect(() => {
+    // getCollectionData()
     getSignerFromProvider();
   }, [])
 
+
+
+  // const getCollectionData = async () => {
+  //   try {
+  //     const args = `{
+  //       where: {
+  //         collectionAddresses: [
+  //           "0x2EaF89a07991540D070145f3ddCff938b7239535"
+  //         ]
+  //       },
+  //       includeFullDetails: false
+  //     }`;
+  
+  //     let res = await zdk.collection(args);
+  
+  //     console.log('res--', res);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+  
 
   const firebaseConfig = {
     apiKey: "AIzaSyDllIicX42GplfgbeZTqZG5aqI_Xg3PUt0",
@@ -58,13 +97,13 @@ export const SupercoolAuthContextProvider = (props) => {
   // totalNfts()
   async function storeDataInFirebase(metadataUrl) {
     let tokenid = await totalNfts();
-    console.log(tokenid);
+    // console.log(tokenid);
     const newData = {
       id: tokenid,
       url: metadataUrl
     };
     const docRef = await addDoc(collectionRef, newData);
-    console.log("Data stored successfully! Document ID:", docRef.id);
+    // console.log("Data stored successfully! Document ID:", docRef.id);
   }
   // storeDataInFirebase()
 
@@ -94,7 +133,7 @@ export const SupercoolAuthContextProvider = (props) => {
         localStorage.setItem('address', accounts[0]);
       }
 
-      if (window.ethereum.networkVersion === '80001') {
+      if (window.ethereum.networkVersion === '999') {
         setWalletConnected(true);
       } else {
         await window.ethereum.request({
@@ -165,10 +204,10 @@ export const SupercoolAuthContextProvider = (props) => {
       abi,
       signer
     );
-    console.log('use add--', add);
+    // console.log('use add--', add);
     if (add !== undefined) {
       const dataurl = await contract.getUserProfile(add);
-      console.log(dataurl);
+      // console.log(dataurl);
       const response = await axios.get(dataurl);
       // console.log(response.data);
       return response;
@@ -179,11 +218,11 @@ export const SupercoolAuthContextProvider = (props) => {
     try {
       const querySnapshot = await getDocs(collectionRef);
       const data = querySnapshot.docs.map((doc) => doc.data());
-      console.log("Fetched data:", data);
+      // console.log("Fetched data:", data);
       const metadatas = [];
 
       for (let i = 0; i <= data.length - 1; i++) {
-        console.log(data[i], '------------');
+        // console.log(data[i], '------------');
         let tokenURI = data[i].url;
         // console.log(tokenURI);
         const response = await fetch(tokenURI);
@@ -201,7 +240,7 @@ export const SupercoolAuthContextProvider = (props) => {
 
   useState(() => {
     setTimeout(() => {
-      console.log('running usestate');
+      // console.log('running usestate');
       getAllNfts()
     }, 5000);
   }, [loading])
@@ -235,7 +274,7 @@ export const SupercoolAuthContextProvider = (props) => {
     let dataStringify = JSON.stringify(e);
     const ipfsResult = await client.add(dataStringify);
     const contentUri = `https://superfun.infura-ipfs.io/ipfs/${ipfsResult.path}`;
-    console.log('contentUri', contentUri);
+    // console.log('contentUri', contentUri);
     return contentUri;
   }
 
@@ -254,7 +293,7 @@ export const SupercoolAuthContextProvider = (props) => {
           },
         }
       );
-      console.log(response.data.choices[0].text);
+      // console.log(response.data.choices[0].text);
       setPrompt(response.data.choices[0].text);
       // return response.data.choices[0].text;
     } catch (error) {

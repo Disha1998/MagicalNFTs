@@ -12,9 +12,13 @@ import CircularProgress from '@mui/material/CircularProgress';
 import ImageModal from "../modal/modal";
 import RendersellNft from "../renderSellNft/renderSellNft";
 
+import { BaseError, Address, parseEther } from "viem";
+import { zoraNftCreatorV1Config } from "@zoralabs/nft-drop-contracts";
+
+
 const Create = () => {
   const superCoolContext = React.useContext(SupercoolAuthContext);
-  const { uploadOnIpfs, maticToUsdPricee, loading, provider,setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts,storeDataInFirebase } = superCoolContext;
+  const { uploadOnIpfs, maticToUsdPricee, loading, provider, setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Profile avatar" || category);
   const [description, setDescription] = useState("");
@@ -54,13 +58,96 @@ const Create = () => {
   const client = new NFTStorage({ token: NFT_STORAGE_TOKEN });
 
 
+
+
+
+  //   const {
+  //     data: receipt,
+  //     isLoading: isPending,
+  //     isSuccess,
+  //   } = useWaitForTransaction({ hash: data?.hash });
+  // console.log('receipt---',receipt);
+
+
+  const createNftCol = async () => {
+    const address = localStorage.getItem('address');
+    // console.log('cur add--',zoraNftCreatorV1Config.abi);
+
+    const symbol = "MNFT";
+    const editionSize = 1n;
+    const royaltyBps = 0;
+    const fundsRecipient = address;
+    const defaultAdmin = address;
+    const animationUri = "0x0";
+
+    const maxSalePurchasePerAddress = 1;
+    let contract;
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner(address);
+      console.log(signer);
+  
+       contract = new ethers.Contract(
+        zoraNftCreatorV1Config.address[999],
+        zoraNftCreatorV1Config.abi,
+        signer
+      );  
+    } catch (e) {
+      console.error("Failed to instatiate contract: " + e.message);
+    }
+    
+    try {
+      const tx = await contract.createEdition(
+        title,
+        symbol,
+        editionSize,
+        royaltyBps,
+        fundsRecipient,
+        defaultAdmin,
+        {
+          maxSalePurchasePerAddress,
+          presaleEnd: 0n,
+          presaleStart: 0n,
+          presaleMerkleRoot:
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+          publicSaleEnd: 18446744073709551615n,
+          publicSalePrice: parseEther(price),
+          publicSaleStart: 0n,
+        },
+        description,
+        animationUri,
+        selectedImage
+
+      );
+
+       const receipt = await tx.wait();
+        console.log('recept--',receipt);
+
+    } catch (e) {
+      console.error("Failed to mint NFT: " + e.message);
+    }
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
   const generateImage = async () => {
     setGenerateLoading(true);
     setPlaceholder(`Search ${prompt}...`);
     try {
       const res = await openai.createImage({
         prompt: prompt,
-        n: 3,
+        n: 1,
         size: "256x256",
       });
       console.log(res);
@@ -125,13 +212,13 @@ const Create = () => {
 
   const mintNft = async (_price, _metadataurl) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner(); 
-    
+    const signer = provider.getSigner();
+
     const contract = new ethers.Contract(
       SUPER_COOL_NFT_CONTRACT,
       abi,
       signer
-    ); 
+    );
 
     try {
       const tx = await contract.mintNFT(_price, _metadataurl);
@@ -163,9 +250,9 @@ const Create = () => {
 
   const createNft = async () => {
 
-  const maticToUsd = await maticToUsdPricee(price)
-  console.log(maticToUsd._hex / 100000000);
-  let tokenid = await totalNfts();
+    const maticToUsd = await maticToUsdPricee(price)
+    console.log(maticToUsd._hex / 100000000);
+    let tokenid = await totalNfts();
     const nftData = {
       title: title,
       description: description,
@@ -175,14 +262,14 @@ const Create = () => {
       category: category,
       owner: localStorage.getItem('address'),
       tokenId: tokenid,
-      maticToUSD:maticToUsd._hex / 100000000
+      maticToUSD: maticToUsd._hex / 100000000
     }
-    
+
     console.log(nftData);
     setMintLoading(true);
     let metadataurl = await uploadOnIpfs(nftData);
     await storeDataInFirebase(metadataurl);
-   await mintNft(ethers.utils.parseUnits(nftData.price?.toString(), "ether"), metadataurl);
+    await mintNft(ethers.utils.parseUnits(nftData.price?.toString(), "ether"), metadataurl);
   }
 
   function handleSelectedImg(url) {
@@ -330,7 +417,7 @@ const Create = () => {
                   setTitle={setTitle}
                   setDescription={setDescription}
                   setPrice={setPrice}
-                  createNft={createNft}
+                  createNft={createNftCol}
                   mintLoading={mintLoading}
                   category={category}
                   setCategory={setCategory}
