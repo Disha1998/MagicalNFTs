@@ -82,6 +82,7 @@ export const SupercoolAuthContextProvider = (props) => {
       },
       includeFullDetails: true
     }
+    console.log('gettin data');
     const response = await zdk.token(argsNFT);
   }
 
@@ -147,19 +148,45 @@ export const SupercoolAuthContextProvider = (props) => {
       console.log("Collection address added!");
     }
   }
-
   async function fetchAllCollections() {
-    const querySnapshot = await getDocs(collectionCon);
-    const data = querySnapshot.docs.map((doc) => doc.data());
-    console.log(data);
+    const q = query(
+        collection(db, "collection")
+    );
 
-    for (let i = 0; i <= data.length - 1; i++) {
-      const collectionAddresses = data[i].collectionAddresses || [];
-      for (let i = 0; i <= collectionAddresses.length - 1; i++) {
-        let NftData = await getCollectionData(collectionAddresses[i])
-      }
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const walletAddress = data.walletAddress;
+            const collectionAddresses = data.collectionAddresses || [];
+
+            console.log(`Wallet Address: ${walletAddress}`);
+            console.log("Collection Addresses:");
+            collectionAddresses.forEach((address) => {
+                console.log(address);
+            });
+        });
+    } else {
+        console.log("No collections found in the database.");
     }
-  }
+}
+
+  // async function fetchAllCollections() {
+  //   const querySnapshot = await getDocs(collectionCon);
+  //   const data = querySnapshot.docs.map((doc) => doc.data());
+  //   console.log(data);
+
+  //   for (let i = 0; i <= data.length - 1; i++) {
+  //     console.log('data l', data.length);
+  //     const collectionAddresses = data[i].collectionAddresses || [];
+  //     for (let i = 0; i <= collectionAddresses.length - 1; i++) {
+  //     console.log('col l', collectionAddresses.length);
+
+  //       let NftData = await getCollectionData(collectionAddresses[i])
+  //     }
+  //   }
+  // }
 
 
 
