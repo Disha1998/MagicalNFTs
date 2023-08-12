@@ -341,7 +341,8 @@ const Create = () => {
                       <span>
                         <a
                           className="hover:text-accent dark:hover:text-white text-jacarta-700 font-bold font-display mb-6 text-center text-md dark:text-white md:text-left lg:text-md xl:text-md animate-gradient"
-                          style={{ cursor: "pointer" }} onClick={GenerateNum}
+                          style={{ cursor: "pointer" }} 
+                          onClick={GenerateNum}
                         > {
                             genRanImgLoding ?
                               "generating random prompt..." : "generate random image."

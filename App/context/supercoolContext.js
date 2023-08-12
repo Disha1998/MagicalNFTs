@@ -153,27 +153,27 @@ export const SupercoolAuthContextProvider = (props) => {
   }
   async function fetchAllCollections() {
     const q = query(
-        collection(db, "collection")
+      collection(db, "collection")
     );
 
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const walletAddress = data.walletAddress;
-            const collectionAddresses = data.collectionAddresses || [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const walletAddress = data.walletAddress;
+        const collectionAddresses = data.collectionAddresses || [];
 
-            console.log(`Wallet Address: ${walletAddress}`);
-            console.log("Collection Addresses:");
-            collectionAddresses.forEach((address) => {
-                console.log(address);
-            });
+        console.log(`Wallet Address: ${walletAddress}`);
+        console.log("Collection Addresses:");
+        collectionAddresses.forEach((address) => {
+          console.log(address);
         });
+      });
     } else {
-        console.log("No collections found in the database.");
+      console.log("No collections found in the database.");
     }
-}
+  }
 
   // async function fetchAllCollections() {
   //   const querySnapshot = await getDocs(collectionCon);
@@ -281,25 +281,12 @@ export const SupercoolAuthContextProvider = (props) => {
     },
   });
 
+  const GenerateNum = () => {
+    const index = Math.floor(Math.random() * RandomPrompts.length);
+    setPrompt(RandomPrompts[index])
+  };
 
 
-  const GenerateNum = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-
-    const contract = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
-      signer
-    );
-
-    setGenRanImgLoding(true);
-    const tx = await contract.getRandomNumber();
-    await tx.wait();
-    const num = await contract.ranNum();
-    setPrompt(RandomPrompts[num]);
-    setGenRanImgLoding(false);
-  }
   const getProfileData = async (add) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();

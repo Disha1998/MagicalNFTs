@@ -14,11 +14,6 @@ const User_items = ({ data }) => {
   const tabItem = [
     {
       id: 1,
-      text: "on sale",
-      icon: "on-sale",
-    },
-    {
-      id: 2,
       text: "owned",
       icon: "owned",
     },
@@ -70,7 +65,6 @@ const User_items = ({ data }) => {
 
             <TabPanel>
               <div>
-                {/* <!-- Filter --> */}
                 <Trending_categories_items
                   data={data}
                 />

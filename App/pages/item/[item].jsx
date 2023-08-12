@@ -16,17 +16,17 @@ import { ethers } from 'ethers';
 const Item = () => {
 	const dispatch = useDispatch();
 	const router = useRouter();
-	const pid = router.query.item;
+	const cid = router.query.item;
 	const [imageModal, setImageModal] = useState(false);
 	const [currentPriceUSD, setCurrentPriceUSD] = useState();
 	const [maticToUSD, setMaticToUSD] = useState();
 	const superCoolContext = React.useContext(SupercoolAuthContext);
-	const { allNfts } = superCoolContext;
+	const { allNftsCollection } = superCoolContext;
 
 
 	return (
 		<>
-			<Meta title={`${pid} || Xhibiter | NFT Marketplace Next.js Template`} />
+			<Meta title={`${cid} || Xhibiter | NFT Marketplace Next.js Template`} />
 			{/*  <!-- Item --> */}
 			<section className="relative lg:mt-24 lg:pt-24 lg:pb-24 mt-24 pt-12 pb-24">
 				<picture className="pointer-events-none absolute inset-0 -z-10 dark:hidden">
@@ -34,15 +34,15 @@ const Item = () => {
 				</picture>
 				<div className="container">
 					{/* <!-- Item --> */}
-					{allNfts
-						.filter((item) => item.tokenId == pid)
+					{allNftsCollection
+						.filter((item) => item.collectionAddress == cid)
 						.map((item) => {
 							return (
-								<div key={item.tokenId} className="md:flex md:flex-wrap" >
+								<div key={item.tokenid} className="md:flex md:flex-wrap" >
 									{/* <!-- Image --> */}
 									<figure className="mb-8 md:w-2/5 md:flex-shrink-0 md:flex-grow-0 md:basis-auto lg:w-1/2 w-full">
 										<button className=" w-full" onClick={() => setImageModal(true)}>
-											<img src={item.image} alt={item.title} className="rounded-2xl cursor-pointer  w-full" />
+											<img src={item.image} alt={item.name} className="rounded-2xl cursor-pointer  w-full" />
 										</button>
 
 										{/* <!-- Modal --> */}
@@ -94,7 +94,7 @@ const Item = () => {
 
 										<h1
 											className="font-display text-jacarta-700 mb-4 text-4xl font-semibold dark:text-white">
-											{item.title}
+											{item.name}
 										</h1>
 
 										<div className="mb-8 flex items-center space-x-4 whitespace-nowrap">
@@ -126,7 +126,7 @@ const Item = () => {
 														<a className="relative block">
 															<img
 																src={item.image}
-																alt={item.title}
+																alt={item.name}
 																className="rounded-2lg h-12 w-12"
 																loading="lazy"
 															/>
