@@ -47,7 +47,8 @@ const hero = () => {
             <div className="relative text-center md:pl-8 md:text-right">
               <img
                 // src="/images/home1.jpeg"
-                src="/magical.jpeg"
+                src="images/magicall.jpeg"
+
                 alt=""
                 className="hero-img mt-8 inline-block w-72 rotate-[8deg] sm:w-full lg:w-[24rem] xl:w-[35rem]"
               />
