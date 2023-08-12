@@ -39,6 +39,7 @@ export const SupercoolAuthContextProvider = (props) => {
   const [allNfts, setAllNfts] = useState([]);
   const [prompt, setPrompt] = useState("");
   const [userAdd, setUserAdd] = useState();
+  
   const [genRanImgLoding, setGenRanImgLoding] = useState(false);
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
@@ -59,6 +60,7 @@ export const SupercoolAuthContextProvider = (props) => {
   const firestore = getFirestore();
   const collectionRef = collection(firestore, "TokenUri");
   const collectionCon = collection(firestore, "collection");
+  const UserProfileRef = collection(firestore, "UserProfile");
 
   class NftData {
     constructor(collectionAddress, name, description, symbol, image, owner) {
@@ -416,7 +418,8 @@ export const SupercoolAuthContextProvider = (props) => {
         storeDataInFirebase,
         maticToUsdPricee,
         provider,
-        storeCollection
+        storeCollection,
+        UserProfileRef
       }}
       {...props}
     >

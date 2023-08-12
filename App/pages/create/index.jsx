@@ -14,17 +14,17 @@ import RendersellNft from "../renderSellNft/renderSellNft";
 
 import { BaseError, Address, parseEther } from "viem";
 import { zoraNftCreatorV1Config } from "@zoralabs/nft-drop-contracts";
-import { erc721DropABI } from "@zoralabs/nft-drop-contracts"; 
+import { erc721DropABI } from "@zoralabs/nft-drop-contracts";
 
 
 const Create = () => {
   const superCoolContext = React.useContext(SupercoolAuthContext);
-  const { uploadOnIpfs,storeCollection, maticToUsdPricee, loading, provider, setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
+  const { uploadOnIpfs, storeCollection, maticToUsdPricee, loading, provider, setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Profile avatar" || category);
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState();
-  const [chain, setChain] = useState("Ethereum" || chain);
+  const [chain, setChain] = useState("Zora");
   const [rendersellNFT, setrendersellNFT] = useState(false)
   const [imageUrl, setImageUrl] = useState('');
   const [isMounted, setIsMounted] = useState(false);
@@ -88,16 +88,17 @@ const Create = () => {
 
     let contract;
     try {
-       contract = new ethers.Contract(
+      contract = new ethers.Contract(
         zoraNftCreatorV1Config.address[999],
         zoraNftCreatorV1Config.abi,
         signer
-      );  
+      );
     } catch (e) {
       console.error("Failed to instatiate contract: " + e.message);
     }
-    
+
     try {
+      console.log('innn');
       const tx = await contract.createEdition(
         title,
         symbol,
@@ -121,34 +122,34 @@ const Create = () => {
 
       );
 
-       const receipt = await tx.wait();
-        console.log('recept--',receipt,receipt.events[0].address);
+      const receipt = await tx.wait();
+      console.log('recept--', receipt, receipt.events[0].address);
 
-        if(receipt.status == 1){
-          let con = new ethers.Contract(
-            receipt.events[0].address,
-            erc721DropABI,
-            signer
-          );  
+      if (receipt.status == 1) {
+        let con = new ethers.Contract(
+          receipt.events[0].address,
+          erc721DropABI,
+          signer
+        );
 
-          let fee = 0.000777;
-          let p = Number(price);
-          let val = fee + p;
-            console.log('value--',val);
-          const txx = await con.purchase( 1, { value: ethers.utils.parseUnits(val.toString(), "ether") })
-          const res = await txx.wait();
+        let fee = 0.000777;
+        let p = Number(price);
+        let val = fee + p;
+        console.log('value--', val);
+        const txx = await con.purchase(1, { value: ethers.utils.parseUnits(val.toString(), "ether") })
+        const res = await txx.wait();
 
-          if(res.status == 1){
-        await storeCollection(receipt.events[0].address);
+        if (res.status == 1) {
+          await storeCollection(receipt.events[0].address);
 
-          }
         }
+      }
 
-       
+
     } catch (e) {
-      console.error("Failed to mint NFT: " + e.message);
+      console.error("Failed to mint NFT=====: " + e.message);
     }
-   
+
   }
 
 
@@ -281,7 +282,9 @@ const Create = () => {
       description: description,
       price: price,
       chain: chain,
-      image: selectedImage,
+      // image: selectedImage,
+      image: 'https://bafkreig7eg43odeepmapv5dezh37ep22bxwpquiy6vr5p3eoytz2qtucuu.ipfs.nftstorage.link/',
+
       category: category,
       owner: localStorage.getItem('address'),
       tokenId: tokenid,
@@ -341,7 +344,7 @@ const Create = () => {
                       <span>
                         <a
                           className="hover:text-accent dark:hover:text-white text-jacarta-700 font-bold font-display mb-6 text-center text-md dark:text-white md:text-left lg:text-md xl:text-md animate-gradient"
-                          style={{ cursor: "pointer" }} 
+                          style={{ cursor: "pointer" }}
                           onClick={GenerateNum}
                         > {
                             genRanImgLoding ?

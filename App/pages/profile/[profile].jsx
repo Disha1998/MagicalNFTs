@@ -1,26 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import Tippy from '@tippyjs/react';
-import CopyToClipboard from 'react-copy-to-clipboard';
-import Image from 'next/image';
-import UserId from '../../components/userId';
-import Head from 'next/head';
 import Meta from '../../components/Meta';
-import { ethers, Signer } from 'ethers';
 import { SupercoolAuthContext } from '../../context/supercoolContext';
-import axios from 'axios'; 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 
-import { abi, SUPER_COOL_NFT_CONTRACT } from '../../constant/constant';
 const Edit_user = () => {
 	const superCoolContext = React.useContext(SupercoolAuthContext);
-	const { uploadDatainIpfs, handleImgUpload } = superCoolContext;
+	const { handleImgUpload, UserProfileRef, db } = superCoolContext;
 	const [coverePhoto, setCoverePhoto] = useState();
 	const [username, setUsername] = useState("");
-	const [walletAddress, setWalletAddress] = useState(undefined);
 	const [bio, setBio] = useState("");
 	const [profilePhoto, setProfilePhoto] = useState();
-	// Profile data
+	const [walletAddress, setWalletAddress] = useState();
 
-	
 	const Profiledata = {
 		username: username,
 		bio: bio,
@@ -29,22 +22,10 @@ const Edit_user = () => {
 		walletAddress: walletAddress
 	}
 
-	useEffect(() => {
-		if (typeof window !== 'undefined') {
-				setWalletAddress(localStorage.getItem('address'))
-		  } 
-		if (walletAddress !== undefined) {
-			editProfileData();
-		}
-
-	}, [walletAddress])
-
-	 
 	const UsernameEvent = (e) => {
 		setUsername(e.target.value)
 	}
 	const BioEvent = (e) => {
-		console.log(e);
 		setBio(e.target.value)
 	}
 	const handleCoverPhoto = async (event) => {
@@ -57,53 +38,95 @@ const Edit_user = () => {
 		setProfilePhoto(pfpImg)
 	}
 
-	const editProfileData = async () => {
 
-			setWalletAddress(localStorage.getItem('address'))
-			console.log(response);
-			setUsername(response.data.username)
-			setBio(response.data.bio)
-			setCoverePhoto(response.data.coverimage);
-			setProfilePhoto(response.data.profilephoto)
+	async function storeUserProfile() {
+		let address = localStorage.getItem("address")
+		const q = query(
+			collection(db, "UserProfile"),
+			where("walletAddress", "===", address)
+		);
+
+		const querySnapshot = await getDocs(q);
+
+		if (querySnapshot.empty) {
+			addDoc(UserProfileRef, Profiledata);
+			toast("Profile Updated !!");
+		} else {
+			querySnapshot.forEach((fire) => {
+				const data = {
+					username:
+						Profiledata.username !== ""
+							? Profiledata.username
+							: fire.data().username,
+
+					bio:
+						Profiledata.bio !== ""
+							? Profiledata.bio
+							: fire.data().bio,
+
+					profilephoto:
+						Profiledata.profilephoto !== undefined
+							? Profiledata.profilephoto
+							: fire.data().profilephoto,
+
+					coverimage:
+						Profiledata.coverimage !== undefined
+							? Profiledata.coverimage
+							: fire.data().coverimage,
+
+					walletAddress:
+						Profiledata.walletAddress
+				};
+				const dataref = doc(db, "UserProfile", fire.id);
+				updateDoc(dataref, data);
+				toast("Profile Updated!!");
+			})
+		}
+
 	}
 
 	const updateProfile = async () => {
-		const provider = new ethers.providers.Web3Provider(window.ethereum);
-       const signer = provider.getSigner();
-
-	const contract = new ethers.Contract(
-		SUPER_COOL_NFT_CONTRACT,
-		abi,
-		signer
-	);
-		console.log(Profiledata);
-		let url = await uploadDatainIpfs(Profiledata);
-		console.log('metadataurl==', url);
-
-		const tx = await contract.storeProfileData(url);
-		await tx.wait();
-
+		await storeUserProfile()
 	}
-	// console.log('Data', Data);
 
-
-	const uploadImageToIPFS = async (imageData) => {
-		try {
-			const uploadedImage = await ipfs.add(imageData);
-			const imageHash = uploadedImage.cid.toString();
-			return imageHash;
-		} catch (error) {
-			console.error('Error uploading image to IPFS:', error);
-			return null;
+	useEffect(() => {
+		if (typeof window !== undefined) {
+			const address = localStorage.getItem('address');
+			setWalletAddress(address);
+			if (address) {
+				getEditProfileData();
+			}
 		}
-	};
+	}, [])
 
+	const getEditProfileData = async () => {
+		let address = localStorage.getItem("address")
+		console.log('address',address);
+		try {
+			const q = query(
+				collection(db, "UserProfile"),
+				where("walletAddress", "==", address)
+			);
+			const querySnapshot = await getDocs(q);
+
+			if (querySnapshot.empty) {
+				console.log(" create profile!!");
+			} else {
+				const data = querySnapshot.docs.map((doc) => doc.data());
+				setUsername(data[0].username)
+				setBio(data[0].bio)
+				setCoverePhoto(data[0].coverimage);
+				setProfilePhoto(data[0].profilephoto)
+			}
+		} catch (error) {
+			console.error("Error fetching user profile: ", error);
+		}
+	}
 
 	return (
 		<div>
 			<Meta title="Profile || Xhibiter | NFT Marketplace Next.js Template" />
 			<div className="pt-[5.5rem] lg:pt-24">
-				{/* <!-- Banner --> */}
 				<div className="relative">
 					<img
 						src={coverePhoto}
@@ -134,15 +157,12 @@ const Edit_user = () => {
 						</div>
 					</div>
 				</div>
-				{/* <!-- end banner --> */}
-				{/* <!-- Edit Profile --> */}
 				<section className="dark:bg-jacarta-800 relative py-16">
 					<picture className="pointer-events-none absolute inset-0 -z-10 dark:hidden">
 						<img src="/images/gradient_light.jpg" alt="gradient" className="h-full w-full" />
 					</picture>
 					<div className="container">
 						<div className="mx-auto max-w-[48.125rem] md:flex">
-							{/* <!-- Form --> */}
 							<div className="mb-12 md:w-1/2 md:pr-8">
 								<div className="mb-6">
 									<label className="font-display text-jacarta-700 mb-1 block text-sm dark:text-white">
@@ -172,7 +192,6 @@ const Edit_user = () => {
 									></textarea>
 								</div>
 
-
 								<div className="mb-6">
 									<label className="font-display text-jacarta-700 mb-1 block text-sm dark:text-white">
 										Wallet Address
@@ -185,20 +204,16 @@ const Edit_user = () => {
 										required
 										value={walletAddress}
 										disabled
-									// onChange={UsernameEvent}
 									/>
-									{/* <UserId
-										classes="js-copy-clipboard dark:bg-jacarta-700 border-jacarta-100 hover:bg-jacarta-50 dark:border-jacarta-600 dark:text-jacarta-300 flex w-full select-none items-center rounded-lg border bg-white py-3 px-4"
-									userId={localStorage.getItem('address').slice(0, 34)}
-									/> */}
 								</div>
 								<button className="bg-accent shadow-accent-volume hover:bg-accent-dark rounded-full py-3 px-8 text-center font-semibold text-white transition-all"
 									onClick={updateProfile}
 								>
 									Update Profile
 								</button>
+								<ToastContainer />
+
 							</div>
-							{/* <!-- Avatar --> */}
 							<div className="flex space-x-5 md:w-1/2 md:pl-8">
 								<form className="shrink-0">
 									<figure className="relative inline-block">
@@ -244,7 +259,6 @@ const Edit_user = () => {
 						</div>
 					</div>
 				</section>
-				{/* <!-- end edit profile --> */}
 			</div>
 		</div>
 	);
