@@ -13,10 +13,27 @@ import { Strategies, Networks } from '@zoralabs/nft-hooks'
 
 
 import { getDatabase, ref, set } from "firebase/database";
+import { ZDK, ZDKNetwork, ZDKChain } from "@zoralabs/zdk";
+
 export const SupercoolAuthContext = createContext(undefined);
 
 export const SupercoolAuthContextProvider = (props) => {
 
+  const networkInfo = {
+    network: ZDKNetwork.Zora,
+    chain: ZDKChain.ZoraGoerli,
+  }
+
+  const API_ENDPOINT = "https://api.zora.co/graphql";
+  // const API_ENDPOINT = "https://api.thegraph.com/subgraphs/name/kolber/zora-create-goerli";
+  const args = {
+    endPoint: API_ENDPOINT,
+    networks: [networkInfo],
+    // apiKey: process.env.API_KEY
+  }
+
+  const zdk = new ZDK(args)
+  // console.log(zdk);
   const [walletConnected, setWalletConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [allNfts, setAllNfts] = useState([]);
@@ -28,10 +45,12 @@ export const SupercoolAuthContextProvider = (props) => {
 
   // console.log(allNfts);
   useEffect(() => {
+    // getCollectionData()
     getSignerFromProvider();
   }, [])
 
 
+<<<<<<< HEAD
   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora 
 
   const networkInfo = {
@@ -51,6 +70,28 @@ export const SupercoolAuthContextProvider = (props) => {
   // Zora  // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora 
 
 
+=======
+
+  // const getCollectionData = async () => {
+  //   try {
+  //     const args = `{
+  //       where: {
+  //         collectionAddresses: [
+  //           "0x2EaF89a07991540D070145f3ddCff938b7239535"
+  //         ]
+  //       },
+  //       includeFullDetails: false
+  //     }`;
+  
+  //     let res = await zdk.collection(args);
+  
+  //     console.log('res--', res);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+  
+>>>>>>> 795bb7c
 
   const firebaseConfig = {
     apiKey: "AIzaSyDllIicX42GplfgbeZTqZG5aqI_Xg3PUt0",
@@ -81,13 +122,17 @@ export const SupercoolAuthContextProvider = (props) => {
   // totalNfts()
   async function storeDataInFirebase(metadataUrl) {
     let tokenid = await totalNfts();
+<<<<<<< HEAD
     console.log(tokenid, '-----tokenid');
+=======
+    // console.log(tokenid);
+>>>>>>> 795bb7c
     const newData = {
       id: tokenid,
       url: metadataUrl
     };
     const docRef = await addDoc(collectionRef, newData);
-    console.log("Data stored successfully! Document ID:", docRef.id);
+    // console.log("Data stored successfully! Document ID:", docRef.id);
   }
 
   // 0x9b3bb95f64e59c6429b1a7bc6659c7f0e5f437cb //2nd nft
@@ -156,7 +201,7 @@ export const SupercoolAuthContextProvider = (props) => {
         localStorage.setItem('address', accounts[0]);
       }
 
-      if (window.ethereum.networkVersion === '80001') {
+      if (window.ethereum.networkVersion === '999') {
         setWalletConnected(true);
       } else {
         await window.ethereum.request({
@@ -227,7 +272,7 @@ export const SupercoolAuthContextProvider = (props) => {
       abi,
       signer
     );
-    console.log('use add--', add);
+    // console.log('use add--', add);
     if (add !== undefined) {
       const dataurl = await contract.getUserProfile(add);
       // console.log(dataurl);
@@ -263,7 +308,7 @@ export const SupercoolAuthContextProvider = (props) => {
 
   useState(() => {
     setTimeout(() => {
-      console.log('running usestate');
+      // console.log('running usestate');
       getAllNfts()
     }, 5000);
   }, [loading])
@@ -297,7 +342,7 @@ export const SupercoolAuthContextProvider = (props) => {
     let dataStringify = JSON.stringify(e);
     const ipfsResult = await client.add(dataStringify);
     const contentUri = `https://superfun.infura-ipfs.io/ipfs/${ipfsResult.path}`;
-    console.log('contentUri', contentUri);
+    // console.log('contentUri', contentUri);
     return contentUri;
   }
 
