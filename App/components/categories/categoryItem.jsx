@@ -10,11 +10,11 @@ const CategoryItem = ({ data }) => {
       {data && data.map((item) => {
 
         return (
-          <article key={item.tokenId}>
+          <article key={item.tokenid}>
             <div className="dark:bg-jacarta-700 dark:border-jacarta-700 border-jacarta-100 rounded-2.5xl block border bg-white p-[1.1875rem] transition-shadow hover:shadow-lg">
               <figure className="relative">
                 <a>
-                <Link href={`/item/${item.tokenId}`}>
+                <Link href={`/item/${item.collectionAddress}`}>
                   <img
                     style={{cursor:"pointer"}}
                     src={item.image}
@@ -28,7 +28,7 @@ const CategoryItem = ({ data }) => {
               <div className="mt-3 flex items-center justify-between">
                 <a>
                   <span className="font-display text-jacarta-700 hover:text-accent text-base dark:text-white">
-                    {item.title}
+                    {item.name}
                   </span>
                 </a>
               </div>
@@ -43,7 +43,8 @@ const CategoryItem = ({ data }) => {
                 </span>
                 <span className="dark:text-jacarta-300 text-jacarta-500">
                   {/* 1/1 */}
-                  ~ ${item.maticToUSD}
+                  ~ 
+                  {/* ${item.maticToUSD} */}
                 </span>
               </div>
 

@@ -25,45 +25,12 @@ const User = () => {
   const [copied, setCopied] = useState(false);
   const [data, setData] = useState([]);
   const superCoolContext = React.useContext(SupercoolAuthContext);
-  const { allNfts, getProfileData } = superCoolContext;
+  const { userNftsCollection } = superCoolContext;
  
 
-  useEffect(() => {
-    ProfileData();
-    if (allNfts.length > 0) {
-      const add = localStorage.getItem('address')
-        setAddress(add);
-        getUserData(add);
-      
-    }
-  }, [])
-  const ProfileData = async () => {
-const add = localStorage.getItem('address')
-console.log('address for user data',add);
-      setWalletAddress(add)
-
-      const response = await getProfileData(add);
-      console.log('response--', response);
-      setUsername(response.data.username)
-      setBio(response.data.bio)
-      setCoverePhoto(response.data.coverimage);
-      setProfilePhoto(response.data.profilephoto)
-
-  }
-
-  const getUserData = async (address) => {
-    const dataa = [];
-    for (let i = 0; i < allNfts.length; i++) {
-      const element = allNfts[i];
-      if (element.owner.toLowerCase() == address.toLowerCase()) {
-        dataa.push(element)
-      }
-    }
-    setData(dataa);
-  }
-  // console.log('user data', data);
-
-
+  // useEffect(() => {
+  // }, [])
+  
   useEffect(() => {
     setTimeout(() => {
       setCopied(false);
@@ -140,7 +107,7 @@ console.log('address for user data',add);
           </div>
         </section>
         {/* <!-- end profile --> */}
-        <User_items data={data} />
+        <User_items data={userNftsCollection} />
       </div>
     </>
   );

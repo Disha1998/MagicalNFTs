@@ -12,7 +12,7 @@ import axios from 'axios';
 import { abi, SUPER_COOL_NFT_CONTRACT } from '../../constant/constant';
 const Edit_user = () => {
 	const superCoolContext = React.useContext(SupercoolAuthContext);
-	const { uploadDatainIpfs, handleImgUpload, getProfileData } = superCoolContext;
+	const { uploadDatainIpfs, handleImgUpload } = superCoolContext;
 	const [coverePhoto, setCoverePhoto] = useState();
 	const [username, setUsername] = useState("");
 	const [walletAddress, setWalletAddress] = useState(undefined);
@@ -60,7 +60,6 @@ const Edit_user = () => {
 	const editProfileData = async () => {
 
 			setWalletAddress(localStorage.getItem('address'))
-			const response = await getProfileData(localStorage.getItem('address'));
 			console.log(response);
 			setUsername(response.data.username)
 			setBio(response.data.bio)
