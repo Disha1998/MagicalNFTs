@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 .env
+next.config.js
+/next.config.js
+
 # testing
 /coverage 
 # next.js

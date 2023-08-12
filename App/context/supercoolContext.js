@@ -7,7 +7,9 @@ import { ethers } from 'ethers';
 import { RandomPrompts } from "../components/RandomImgs";
 import axios from 'axios';
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc } from "firebase/firestore";
+
+import { getDatabase, ref, set } from "firebase/database";
 import { ZDK, ZDKNetwork, ZDKChain } from "@zoralabs/zdk";
 // import { Strategies, Networks } from '@zoralabs/nft-hooks'
 
@@ -40,54 +42,160 @@ export const SupercoolAuthContextProvider = (props) => {
   const [genRanImgLoding, setGenRanImgLoding] = useState(false);
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
-
-  // console.log(allNfts);
-  useEffect(() => {
-    // getCollectionData()
-    // getMintNFTdata()
-    getSignerFromProvider();
-  }, [])
-
-
-
-
-  // const getCollectionData = async () => {
-  //   try {
-  //     const args = `{
-  //       where: {
-  //         collectionAddresses: [
-  //           "0x2EaF89a07991540D070145f3ddCff938b7239535"
-  //         ]
-  //       },
-  //       includeFullDetails: false
-  //     }`;
-
-  //     let res = await zdk.collection(args);
-
-  //     console.log('res--', res);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
+  const [userNfts, setUserNfts] = useState([]);
 
   const firebaseConfig = {
-    apiKey: "AIzaSyDllIicX42GplfgbeZTqZG5aqI_Xg3PUt0",
-    authDomain: "supercool-fbc8f.firebaseapp.com",
-    projectId: "supercool-fbc8f",
-    storageBucket: "supercool-fbc8f.appspot.com",
-    messagingSenderId: "76744592998",
-    appId: "1:76744592998:web:c7a075000ef0629135e7a7",
-    measurementId: "G-QJZKGMDTX3"
+    apiKey: "AIzaSyD_QcPwBliazXtbuwLiW-dJxJLX9zustG0",
+    authDomain: "magicalnft-a3a61.firebaseapp.com",
+    projectId: "magicalnft-a3a61",
+    storageBucket: "magicalnft-a3a61.appspot.com",
+    messagingSenderId: "63741533323",
+    appId: "1:63741533323:web:70563f84eec3101694888e"
   };
-
-
   const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
   // const analytics = getAnalytics(app);
   const firestore = getFirestore();
   const collectionRef = collection(firestore, "TokenUri");
+  const collectionCon = collection(firestore, "collection");
 
-  // const database = getDatabase(app);
+  class NftData {
+    constructor(collectionAddress, name, description, symbol, image, owner) {
+      this.collectionAddress = collectionAddress;
+      this.name = name;
+      this.description = description;
+      this.symbol = symbol;
+      this.image = image;
+      this.owner = owner;
+    }
+  }
+
+  useEffect(() => {
+    fetchAllCollections();
+    // getCollectionData();
+    getSignerFromProvider();
+  }, [])
+
+  const getCollectionData = async (_addr) => {
+    const argsNFT = {
+      token: {
+        address: _addr,
+        tokenId: "1"
+      },
+      includeFullDetails: true
+    }
+    console.log('gettin data');
+    const response = await zdk.token(argsNFT);
+  }
+
+  //   const args = {
+  //     where: {
+  //       collectionAddresses: [_addr],
+  //       ownerAddresses: [localStorage.getItem('address')]
+  //     },
+
+  //     pagination: { limit: 10 },
+  //     includeFullDetails: true,
+  //     includeSalesHistory: true
+  //   };
+
+  //   const res = await zdk.tokens(args);
+  //   console.log('respons--', res);
+
+  //   if (res.tokens.nodes.length > 0) {
+  //     let arr = []
+  //     let nft = res.tokens.nodes[0].token;
+  //     const newNftData = new NftData(nft.collectionAddress, nft.metadata.properties.name, nft.metadata.description, nft.tokenContract.symbol, nft.metadata.image, nft.owner)
+  //     arr.push(newNftData)
+  //     setUserNfts(arr);
+  //   }
+
+  //   console.log('user nft--', userNfts);
+  // };
+
+
+
+
+
+
+
+
+
+
+  async function storeCollection(_collectionAdd) {
+    const walletAddress = localStorage.getItem('address');
+    const q = query(
+      collection(db, "collection"),
+      where("walletAddress", "==", walletAddress)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      // No matching walletAddress found, store the collection address in a new array
+      await addDoc(collection(db, "collection"), {
+        walletAddress: walletAddress,
+        collectionAddresses: [_collectionAdd] // Start with a new array containing the current address
+      });
+      console.log("Collection stored!!");
+    } else {
+      // Matching walletAddress found, update the array of collection addresses
+      querySnapshot.forEach(async (doc) => {
+        const existingAddresses = doc.data().collectionAddresses || []; // Get existing addresses or start with an empty array
+        existingAddresses.push(_collectionAdd); // Add the new address to the array
+        await updateDoc(doc.ref, {
+          collectionAddresses: existingAddresses
+        });
+      });
+      console.log("Collection address added!");
+    }
+  }
+  async function fetchAllCollections() {
+    const q = query(
+        collection(db, "collection")
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const walletAddress = data.walletAddress;
+            const collectionAddresses = data.collectionAddresses || [];
+
+            console.log(`Wallet Address: ${walletAddress}`);
+            console.log("Collection Addresses:");
+            collectionAddresses.forEach((address) => {
+                console.log(address);
+            });
+        });
+    } else {
+        console.log("No collections found in the database.");
+    }
+}
+
+  // async function fetchAllCollections() {
+  //   const querySnapshot = await getDocs(collectionCon);
+  //   const data = querySnapshot.docs.map((doc) => doc.data());
+  //   console.log(data);
+
+  //   for (let i = 0; i <= data.length - 1; i++) {
+  //     console.log('data l', data.length);
+  //     const collectionAddresses = data[i].collectionAddresses || [];
+  //     for (let i = 0; i <= collectionAddresses.length - 1; i++) {
+  //     console.log('col l', collectionAddresses.length);
+
+  //       let NftData = await getCollectionData(collectionAddresses[i])
+  //     }
+  //   }
+  // }
+
+
+
+
+
+
   const totalNfts = async () => {
     const contractPro = new ethers.Contract(
       SUPER_COOL_NFT_CONTRACT,
@@ -97,7 +205,6 @@ export const SupercoolAuthContextProvider = (props) => {
     const numOfNfts = await contractPro.getTotalSupply();
     return Number(numOfNfts) + 1;
   }
-  // totalNfts()
   async function storeDataInFirebase(metadataUrl) {
     let tokenid = await totalNfts();
     // console.log(tokenid);
@@ -109,76 +216,6 @@ export const SupercoolAuthContextProvider = (props) => {
     // console.log("Data stored successfully! Document ID:", docRef.id);
   }
 
-  // 0x9b3bb95f64e59c6429b1a7bc6659c7f0e5f437cb //2nd nft
-
-  const collectionAddress = '0x89A7cDba1E319E19F942a910c8923D2B600e1993'
-
-  const getCollection = async () => {
-    const { name, symbol, totalSupply, description } = await zdk.collection({
-      address: collectionAddress,
-    });
-    console.log(name, symbol, totalSupply, description );
-
-    return {
-      name,
-      symbol,
-      totalSupply,
-      description,
-    };
-
-  };
-
-  // try {
-  //   const getdata = await zdk.collections(
-  //     { address },
-  //   );
-  //   console.log('getdata--------------', getdata);
-
-  // } catch (error) {
-  //   console.log(error);
-  // }
-  // };
-  getCollection();
-
-  // const getMintNFTdata = async () =>{
-  //   const args = {
-  //     token: {
-  //       address: "0x89A7cDba1E319E19F942a910c8923D2B600e1993",
-  //       tokenId: "1"
-  //     },
-  //     includeFullDetails: true // Optional, provides more data on the NFT such as all historical events
-  //   }
-
-  //   const response = await zdk.tokens(args)
-  //   console.log('responseeee',response);
-
-  // }
-
-  // const getMintData = async () => {
-  //   let tokenid = await totalNfts();
-  //   console.log('tokenid===>', tokenid);
-  //   console.log('mints',mints);
-  //   const { mints } = await zdk.mints({
-  //     where: {
-  //       tokens: [
-  //         {
-  //           address: 0x8b0B87e6C1D2F7Bb513C08aD268F97B89f3561E5,
-  //           tokenid,
-  //         },
-  //       ],
-  //     },
-  //     includeFullDetails: true,
-  //   });
-  //   return {
-  //     mints,
-  //   };
-  // };
-  // getMintData();
-  // storeDataInFirebase()
-
-
-  // fetchAllDataFromCollection()
-
   async function getSignerFromProvider() {
     if (typeof window !== "undefined" && window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -189,7 +226,6 @@ export const SupercoolAuthContextProvider = (props) => {
       console.log('No wallet connected or logged out');
     }
   }
-
 
   const login = async () => {
     if (!window.ethereum) return;
@@ -393,7 +429,7 @@ export const SupercoolAuthContextProvider = (props) => {
         storeDataInFirebase,
         maticToUsdPricee,
         provider,
-        zdk
+        storeCollection
       }}
       {...props}
     >
