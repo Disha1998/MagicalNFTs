@@ -26,7 +26,7 @@ const hero = () => {
               {/* Super cool */}
             </h1>
             <p className="dark:text-jacarta-200 mb-8 text-center text-lg md:text-left">
-            The world largest digital marketplace for generative AI based dynamic profile avatars, gaming characters etc.
+              The world largest digital marketplace for generative AI based dynamic profile avatars, gaming characters etc.
             </p>
             <div className="flex space-x-4">
               <Link href="/create">
@@ -46,7 +46,8 @@ const hero = () => {
           <div className="col-span-6 xl:col-span-8">
             <div className="relative text-center md:pl-8 md:text-right">
               <img
-                src="/images/home1.jpeg"
+                // src="/images/home1.jpeg"
+                src="/magical.jpeg"
                 alt=""
                 className="hero-img mt-8 inline-block w-72 rotate-[8deg] sm:w-full lg:w-[24rem] xl:w-[35rem]"
               />

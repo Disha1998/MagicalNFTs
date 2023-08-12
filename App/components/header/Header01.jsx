@@ -223,7 +223,7 @@ export default function Header01() {
                   </Link>
 
                 </li>
-                <li className="group">
+                {/* <li className="group">
                   <Link href="/createdynemic">
                     <a>
                       <button className="text-jacarta-700 font-display hover:text-accent focus:text-accent dark:hover:text-accent dark:focus:text-accent flex items-center justify-between py-3.5 text-base dark:text-white lg:px-5">
@@ -240,7 +240,7 @@ export default function Header01() {
                     </a>
                   </Link>
 
-                </li>
+                </li> */}
               </ul>
             </nav>
             {/* End menu for desktop */}
