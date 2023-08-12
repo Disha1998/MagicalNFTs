@@ -50,27 +50,6 @@ export const SupercoolAuthContextProvider = (props) => {
   }, [])
 
 
-<<<<<<< HEAD
-  // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora 
-
-  const networkInfo = {
-    network: ZDKNetwork.Zora,
-    chain: ZDKChain.ZoraGoerli,
-  }
-
-  const API_ENDPOINT = "https://api.zora.co/graphql";
-  const args = {
-    endPoint: API_ENDPOINT,
-    networks: [networkInfo],
-    // apiKey: process.env.API_KEY
-  }
-
-  const zdk = new ZDK(args) // All arguments are optional
-
-  // Zora  // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora 
-
-
-=======
 
   // const getCollectionData = async () => {
   //   try {
@@ -91,7 +70,6 @@ export const SupercoolAuthContextProvider = (props) => {
   //   }
   // };
   
->>>>>>> 795bb7c
 
   const firebaseConfig = {
     apiKey: "AIzaSyDllIicX42GplfgbeZTqZG5aqI_Xg3PUt0",
@@ -122,11 +100,7 @@ export const SupercoolAuthContextProvider = (props) => {
   // totalNfts()
   async function storeDataInFirebase(metadataUrl) {
     let tokenid = await totalNfts();
-<<<<<<< HEAD
-    console.log(tokenid, '-----tokenid');
-=======
     // console.log(tokenid);
->>>>>>> 795bb7c
     const newData = {
       id: tokenid,
       url: metadataUrl
