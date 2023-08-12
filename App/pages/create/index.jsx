@@ -19,7 +19,7 @@ import { erc721DropABI } from "@zoralabs/nft-drop-contracts";
 
 const Create = () => {
   const superCoolContext = React.useContext(SupercoolAuthContext);
-  const { uploadOnIpfs, storeCollection, maticToUsdPricee, loading, provider, setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
+  const { fetchAllCollections, storeCollection, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Profile avatar" || category);
   const [description, setDescription] = useState("");
@@ -72,6 +72,7 @@ const Create = () => {
 
 
   const createNftCol = async () => {
+    setMintLoading(true);
     const address = localStorage.getItem('address');
     // console.log('cur add--',zoraNftCreatorV1Config.abi);
 
@@ -95,6 +96,8 @@ const Create = () => {
       );
     } catch (e) {
       console.error("Failed to instatiate contract: " + e.message);
+      setMintLoading(false);
+
     }
 
     try {
@@ -141,13 +144,18 @@ const Create = () => {
 
         if (res.status == 1) {
           await storeCollection(receipt.events[0].address);
+          await fetchAllCollections();
+          setMintLoading(false);
 
         }
+        setMintLoading(false);
+
       }
 
 
     } catch (e) {
-      console.error("Failed to mint NFT=====: " + e.message);
+      console.error("Failed to mint NFT: " + e.message);
+      setMintLoading(false);
     }
 
   }
@@ -229,74 +237,6 @@ const Create = () => {
       setGenerateLoading(false);
     }
   };
-  // JD CORS Solution END ------------------- 
-
-
-
-  const mintNft = async (_price, _metadataurl) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-
-    const contract = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
-      signer
-    );
-
-    try {
-      const tx = await contract.mintNFT(_price, _metadataurl);
-      await tx.wait();
-    } catch (e) {
-      console.error("Failed to mint NFT: " + e.message);
-    }
-    await getAllNfts()
-    setLoading(!loading);
-    setMintLoading(false);
-    setImages([]);
-    setTitle('');
-    setDescription('');
-    setPrice('');
-    setrendersellNFT(false);
-  };
-
-
-  const totalNfts = async () => {
-    const contractPro = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
-      provider
-    );
-    const numOfNfts = await contractPro.getTotalSupply();
-    return Number(numOfNfts) + 1;
-  }
-
-
-  const createNft = async () => {
-
-    const maticToUsd = await maticToUsdPricee(price)
-    console.log(maticToUsd._hex / 100000000);
-    let tokenid = await totalNfts();
-    console.log('tokenid', tokenid);
-    const nftData = {
-      title: title,
-      description: description,
-      price: price,
-      chain: chain,
-      // image: selectedImage,
-      image: 'https://bafkreig7eg43odeepmapv5dezh37ep22bxwpquiy6vr5p3eoytz2qtucuu.ipfs.nftstorage.link/',
-
-      category: category,
-      owner: localStorage.getItem('address'),
-      tokenId: tokenid,
-      maticToUSD: maticToUsd._hex / 100000000
-    }
-
-    console.log(nftData);
-    setMintLoading(true);
-    let metadataurl = await uploadOnIpfs(nftData);
-    await storeDataInFirebase(metadataurl);
-    await mintNft(ethers.utils.parseUnits(nftData.price?.toString(), "ether"), metadataurl);
-  }
 
   function handleSelectedImg(url) {
     setrendersellNFT(false);
@@ -432,7 +372,7 @@ const Create = () => {
                       <ImageModal setModalOpen={setModalOpen}
                         selectedImage={selectedImage}
                         setSelectedImage={setSelectedImage}
-                        createNft={createNft}
+                        // createNft={createNft}
                         setrendersellNFT={setrendersellNFT}
                       />
                     </div>

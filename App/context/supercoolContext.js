@@ -34,7 +34,6 @@ export const SupercoolAuthContextProvider = (props) => {
 
   const zdk = new ZDK(args)
   // console.log(zdk);
-  const [walletConnected, setWalletConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [allNfts, setAllNfts] = useState([]);
   const [prompt, setPrompt] = useState("");
@@ -43,8 +42,12 @@ export const SupercoolAuthContextProvider = (props) => {
   const [genRanImgLoding, setGenRanImgLoding] = useState(false);
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
-  const [userNfts, setUserNfts] = useState([]);
+  const [userNftsCollection, setUserNftsCollection] = useState([]);
+  const [allNftsCollection, setAllNftsCollection] = useState([]);
+  const [loggedInAccount, setLoggedInAccount] = useState(null);
 
+console.log('users--',userNftsCollection);
+console.log('alls--',allNftsCollection);
   const firebaseConfig = {
     apiKey: "AIzaSyD_QcPwBliazXtbuwLiW-dJxJLX9zustG0",
     authDomain: "magicalnft-a3a61.firebaseapp.com",
@@ -74,10 +77,10 @@ export const SupercoolAuthContextProvider = (props) => {
   }
 
   useEffect(() => {
+    setupMetamask();
     fetchAllCollections();
-    // getCollectionData();
     getSignerFromProvider();
-  }, [])
+  }, [loggedInAccount])
 
   const getCollectionData = async (_addr) => {
     const argsNFT = {
@@ -90,38 +93,6 @@ export const SupercoolAuthContextProvider = (props) => {
     console.log('gettin data');
     const response = await zdk.token(argsNFT);
   }
-
-  //   const args = {
-  //     where: {
-  //       collectionAddresses: [_addr],
-  //       ownerAddresses: [localStorage.getItem('address')]
-  //     },
-
-  //     pagination: { limit: 10 },
-  //     includeFullDetails: true,
-  //     includeSalesHistory: true
-  //   };
-
-  //   const res = await zdk.tokens(args);
-  //   console.log('respons--', res);
-
-  //   if (res.tokens.nodes.length > 0) {
-  //     let arr = []
-  //     let nft = res.tokens.nodes[0].token;
-  //     const newNftData = new NftData(nft.collectionAddress, nft.metadata.properties.name, nft.metadata.description, nft.tokenContract.symbol, nft.metadata.image, nft.owner)
-  //     arr.push(newNftData)
-  //     setUserNfts(arr);
-  //   }
-
-  //   console.log('user nft--', userNfts);
-  // };
-
-
-
-
-
-
-
 
 
 
@@ -154,26 +125,25 @@ export const SupercoolAuthContextProvider = (props) => {
     }
   }
   async function fetchAllCollections() {
-    const q = query(
-      collection(db, "collection")
-    );
+    const querySnapshot = await getDocs(collectionCon);
+    const data = querySnapshot.docs.map((doc) => doc.data());
+    console.log(data);
+    let allNftsArr = [];
+    let userNftArr = [];
 
-    const querySnapshot = await getDocs(q);
+    for (let i = 0; i <= data.length - 1; i++) {
+      console.log('data l', data.length);
+      const collectionAddresses = data[i].collectionAddresses || [];
+      for (let i = 0; i <= collectionAddresses.length - 1; i++) {
+      console.log('col l', collectionAddresses.length);
 
-    if (!querySnapshot.empty) {
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const walletAddress = data.walletAddress;
-        const collectionAddresses = data.collectionAddresses || [];
-
-        console.log(`Wallet Address: ${walletAddress}`);
-        console.log("Collection Addresses:");
-        collectionAddresses.forEach((address) => {
-          console.log(address);
-        });
-      });
-    } else {
-      console.log("No collections found in the database.");
+        let NftData = await getCollectionData(collectionAddresses[i])
+        if(NftData.owner == localStorage.getItem('address')){
+          userNftArr.push(NftData);
+        }else{
+          allNftsArr.push(NftData);
+        }
+      }
     }
   }
 
@@ -194,30 +164,6 @@ export const SupercoolAuthContextProvider = (props) => {
   // }
 
 
-
-
-
-
-  const totalNfts = async () => {
-    const contractPro = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
-      provider
-    );
-    const numOfNfts = await contractPro.getTotalSupply();
-    return Number(numOfNfts) + 1;
-  }
-  async function storeDataInFirebase(metadataUrl) {
-    let tokenid = await totalNfts();
-    // console.log(tokenid);
-    const newData = {
-      id: tokenid,
-      url: metadataUrl
-    };
-    const docRef = await addDoc(collectionRef, newData);
-    // console.log("Data stored successfully! Document ID:", docRef.id);
-  }
-
   async function getSignerFromProvider() {
     if (typeof window !== "undefined" && window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -229,44 +175,55 @@ export const SupercoolAuthContextProvider = (props) => {
     }
   }
 
-  const login = async () => {
-    if (!window.ethereum) return;
-    try {
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      setUserAdd(accounts[0]);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('address', accounts[0]);
-      }
+  async function setupMetamask() {
+    if (window.ethereum) {
+      try {
+        await window.ethereum.enable();
 
-      if (window.ethereum.networkVersion === '999') {
-        setWalletConnected(true);
-      } else {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x13881' }] // Polygon Mumbai chain ID
-        });
-        setWalletConnected(true);
-      }
+        const networkId = await window.ethereum.request({ method: 'net_version' });
+        if (Number(networkId) !== 999) {
+          alert("Please switch to the Zora goerli network.");
+          return;
+        }
 
-      if (ethereum && ethereum.selectedAddress) {
-        const address = await signer.getAddress();
-
-      } else {
-        console.log('No wallet connected or logged out');
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          setLoggedInAccount(accounts[0]);
+          localStorage.setItem('address', accounts[0]);
+        }
+      } catch (error) {
+        console.error("Error while setting up Metamask:", error);
       }
-      getAllNfts();
-    } catch (error) {
-      console.error('Login error:', error);
+    } else {
+      console.error("Metamask not detected in your browser.");
     }
-    getAllNfts();
   }
 
-  const logout = async () => {
+  const login = async () => {
+    if (window.ethereum) {
+      try {
+        const networkId = await window.ethereum.request({ method: 'net_version' });
+        if (Number(networkId) !== desiredNetworkId) {
+          alert("Please switch to the correct network.");
+          return;
+        }
+
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          setLoggedInAccount(accounts[0]);
+          localStorage.setItem('loggedInAccount', accounts[0]);
+        }
+      } catch (error) {
+        console.error("Error while logging in:", error);
+      }
+    }
+  };
+
+  const logout = () => {
+    setLoggedInAccount(null);
     localStorage.removeItem('address');
-    setWalletConnected(false);
-  }
+  };
+
 
   const auth =
     "Basic " +
@@ -283,70 +240,6 @@ export const SupercoolAuthContextProvider = (props) => {
     },
   });
 
-  const GenerateNum = () => {
-    const index = Math.floor(Math.random() * RandomPrompts.length);
-    setPrompt(RandomPrompts[index])
-  };
-
-
-  const getProfileData = async (add) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-
-    const contract = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
-      signer
-    );
-    // console.log('use add--', add);
-    if (add !== undefined) {
-      const dataurl = await contract.getUserProfile(add);
-      // console.log(dataurl);
-      const response = await axios.get(dataurl);
-      // console.log(response.data);
-      return response;
-    }
-  }
-
-  async function getAllNfts() {
-    try {
-      const querySnapshot = await getDocs(collectionRef);
-      const data = querySnapshot.docs.map((doc) => doc.data());
-      // console.log("Fetched data:", data);
-      const metadatas = [];
-
-      for (let i = 0; i <= data.length - 1; i++) {
-        // console.log(data[i], '------------');
-        let tokenURI = data[i].url;
-        // console.log(tokenURI);
-        const response = await fetch(tokenURI);
-        const metadata = await response.json();
-
-        // console.log(await response.json());
-        metadatas.push(metadata);
-      }
-      setAllNfts(metadatas);
-    } catch (error) {
-      console.error("Error fetching data: ", error);
-      return [];
-    }
-  }
-
-  useState(() => {
-    setTimeout(() => {
-      // console.log('running usestate');
-      getAllNfts()
-    }, 5000);
-  }, [loading])
-
-  const maticToUsdPricee = async (_price) => {
-    const contractPro = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
-      provider
-    );
-    return await contractPro.convertMaticUsd(ethers.utils.parseUnits(_price, 'ether'));
-  }
   const uploadOnIpfs = async (e) => {
     let dataStringify = JSON.stringify(e);
     const ipfsResult = await client.add(dataStringify);
@@ -406,20 +299,17 @@ export const SupercoolAuthContextProvider = (props) => {
         client,
         loading,
         setLoading,
-        GenerateNum,
         prompt,
         setPrompt,
         genRanImgLoding,
         userAdd,
         uploadDatainIpfs,
-        getAllNfts,
-        getProfileData,
         generateText,
-        storeDataInFirebase,
-        maticToUsdPricee,
         provider,
         storeCollection,
-        UserProfileRef
+        allNftsCollection,
+        userNftsCollection,
+        fetchAllCollections
       }}
       {...props}
     >
