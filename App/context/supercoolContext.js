@@ -9,11 +9,9 @@ import axios from 'axios';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
 import { ZDK, ZDKNetwork, ZDKChain } from "@zoralabs/zdk";
-import { Strategies, Networks } from '@zoralabs/nft-hooks'
+// import { Strategies, Networks } from '@zoralabs/nft-hooks'
 
 
-import { getDatabase, ref, set } from "firebase/database";
-import { ZDK, ZDKNetwork, ZDKChain } from "@zoralabs/zdk";
 
 export const SupercoolAuthContext = createContext(undefined);
 
@@ -46,8 +44,10 @@ export const SupercoolAuthContextProvider = (props) => {
   // console.log(allNfts);
   useEffect(() => {
     // getCollectionData()
+    // getMintNFTdata()
     getSignerFromProvider();
   }, [])
+
 
 
 
@@ -61,15 +61,15 @@ export const SupercoolAuthContextProvider = (props) => {
   //       },
   //       includeFullDetails: false
   //     }`;
-  
+
   //     let res = await zdk.collection(args);
-  
+
   //     console.log('res--', res);
   //   } catch (error) {
   //     console.error(error);
   //   }
   // };
-  
+
 
   const firebaseConfig = {
     apiKey: "AIzaSyDllIicX42GplfgbeZTqZG5aqI_Xg3PUt0",
@@ -111,21 +111,48 @@ export const SupercoolAuthContextProvider = (props) => {
 
   // 0x9b3bb95f64e59c6429b1a7bc6659c7f0e5f437cb //2nd nft
 
-  const address = '0x466aCA3325F7D5da77b05D1683D98aA498319Dd6'
+  const collectionAddress = '0x89A7cDba1E319E19F942a910c8923D2B600e1993'
 
   const getCollection = async () => {
-    try {
-      const getdata = await zdk.collection(
-        { address }
-      );
-      console.log('getdata--------------', getdata);
+    const { name, symbol, totalSupply, description } = await zdk.collection({
+      address: collectionAddress,
+    });
+    console.log(name, symbol, totalSupply, description );
 
-    } catch (error) {
-      console.log(error);
-    }
+    return {
+      name,
+      symbol,
+      totalSupply,
+      description,
+    };
+
   };
+
+  // try {
+  //   const getdata = await zdk.collections(
+  //     { address },
+  //   );
+  //   console.log('getdata--------------', getdata);
+
+  // } catch (error) {
+  //   console.log(error);
+  // }
+  // };
   getCollection();
 
+  // const getMintNFTdata = async () =>{
+  //   const args = {
+  //     token: {
+  //       address: "0x89A7cDba1E319E19F942a910c8923D2B600e1993",
+  //       tokenId: "1"
+  //     },
+  //     includeFullDetails: true // Optional, provides more data on the NFT such as all historical events
+  //   }
+
+  //   const response = await zdk.tokens(args)
+  //   console.log('responseeee',response);
+
+  // }
 
   // const getMintData = async () => {
   //   let tokenid = await totalNfts();
