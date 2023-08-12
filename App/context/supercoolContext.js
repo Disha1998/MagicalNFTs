@@ -39,8 +39,10 @@ export const SupercoolAuthContextProvider = (props) => {
   const [genRanImgLoding, setGenRanImgLoding] = useState(false);
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
-  const [userNfts, setUserNfts] = useState([]);
-
+  const [userNftsCollection, setUserNftsCollection] = useState([]);
+  const [allNftsCollection, setAllNftsCollection] = useState([]);
+console.log('users--',userNftsCollection);
+console.log('alls--',allNftsCollection);
   const firebaseConfig = {
     apiKey: "AIzaSyD_QcPwBliazXtbuwLiW-dJxJLX9zustG0",
     authDomain: "magicalnft-a3a61.firebaseapp.com",
@@ -58,13 +60,15 @@ export const SupercoolAuthContextProvider = (props) => {
   const collectionCon = collection(firestore, "collection");
 
   class NftData {
-    constructor(collectionAddress, name, description, symbol, image, owner) {
+    constructor(collectionAddress, name, description, symbol, image, owner, price, tokenid) {
       this.collectionAddress = collectionAddress;
       this.name = name;
       this.description = description;
       this.symbol = symbol;
       this.image = image;
       this.owner = owner;
+      this.price = price;
+      this.tokenid = tokenid;
     }
   }
 
@@ -75,6 +79,7 @@ export const SupercoolAuthContextProvider = (props) => {
   }, [])
 
   const getCollectionData = async (_addr) => {
+    // let arr = []
     const argsNFT = {
       token: {
         address: _addr,
@@ -82,8 +87,13 @@ export const SupercoolAuthContextProvider = (props) => {
       },
       includeFullDetails: true
     }
-    console.log('gettin data');
     const response = await zdk.token(argsNFT);
+    // console.log('gettin data',response.token.token);
+
+    let nft = response.token.token;
+      const newNftData = new NftData(nft.collectionAddress, nft.metadata.properties.name, nft.metadata.description, nft.tokenContract.symbol, nft.metadata.image, nft.owner, nft.mintInfo.price.chainTokenPrice.decimal, nft.tokenId)
+      return newNftData;
+
   }
 
   //   const args = {
@@ -102,7 +112,7 @@ export const SupercoolAuthContextProvider = (props) => {
 
   //   if (res.tokens.nodes.length > 0) {
   //     let arr = []
-  //     let nft = res.tokens.nodes[0].token;
+      // let nft = res.tokens.nodes[0].token;
   //     const newNftData = new NftData(nft.collectionAddress, nft.metadata.properties.name, nft.metadata.description, nft.tokenContract.symbol, nft.metadata.image, nft.owner)
   //     arr.push(newNftData)
   //     setUserNfts(arr);
@@ -148,45 +158,32 @@ export const SupercoolAuthContextProvider = (props) => {
       console.log("Collection address added!");
     }
   }
+
   async function fetchAllCollections() {
-    const q = query(
-        collection(db, "collection")
-    );
+    const querySnapshot = await getDocs(collectionCon);
+    const data = querySnapshot.docs.map((doc) => doc.data());
+    console.log(data);
+    let allNftsArr = [];
+    let userNftArr = [];
 
-    const querySnapshot = await getDocs(q);
+    for (let i = 0; i <= data.length - 1; i++) {
+      console.log('data l', data.length);
+      const collectionAddresses = data[i].collectionAddresses || [];
+      for (let i = 0; i <= collectionAddresses.length - 1; i++) {
+      console.log('col l', collectionAddresses.length);
 
-    if (!querySnapshot.empty) {
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const walletAddress = data.walletAddress;
-            const collectionAddresses = data.collectionAddresses || [];
-
-            console.log(`Wallet Address: ${walletAddress}`);
-            console.log("Collection Addresses:");
-            collectionAddresses.forEach((address) => {
-                console.log(address);
-            });
-        });
-    } else {
-        console.log("No collections found in the database.");
+        let NftData = await getCollectionData(collectionAddresses[i])
+        if(NftData.owner == localStorage.getItem('address')){
+          userNftArr.push(NftData);
+          allNftsArr.push(NftData);
+        }else{
+          allNftsArr.push(NftData);
+        }
+      }
     }
-}
-
-  // async function fetchAllCollections() {
-  //   const querySnapshot = await getDocs(collectionCon);
-  //   const data = querySnapshot.docs.map((doc) => doc.data());
-  //   console.log(data);
-
-  //   for (let i = 0; i <= data.length - 1; i++) {
-  //     console.log('data l', data.length);
-  //     const collectionAddresses = data[i].collectionAddresses || [];
-  //     for (let i = 0; i <= collectionAddresses.length - 1; i++) {
-  //     console.log('col l', collectionAddresses.length);
-
-  //       let NftData = await getCollectionData(collectionAddresses[i])
-  //     }
-  //   }
-  // }
+    setUserNftsCollection(userNftArr);
+    setAllNftsCollection(allNftsArr);
+  }
 
 
 
@@ -297,24 +294,6 @@ export const SupercoolAuthContextProvider = (props) => {
     setPrompt(RandomPrompts[num]);
     setGenRanImgLoding(false);
   }
-  const getProfileData = async (add) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-
-    const contract = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
-      signer
-    );
-    // console.log('use add--', add);
-    if (add !== undefined) {
-      const dataurl = await contract.getUserProfile(add);
-      // console.log(dataurl);
-      const response = await axios.get(dataurl);
-      // console.log(response.data);
-      return response;
-    }
-  }
 
   async function getAllNfts() {
     try {
@@ -421,12 +400,13 @@ export const SupercoolAuthContextProvider = (props) => {
         userAdd,
         uploadDatainIpfs,
         getAllNfts,
-        getProfileData,
         generateText,
         storeDataInFirebase,
         maticToUsdPricee,
         provider,
-        storeCollection
+        storeCollection,
+        allNftsCollection,
+        userNftsCollection
       }}
       {...props}
     >

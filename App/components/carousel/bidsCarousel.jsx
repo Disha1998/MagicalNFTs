@@ -16,7 +16,7 @@ import React from "react";
 
 const BidsCarousel = () => {
   const superCoolContext = React.useContext(SupercoolAuthContext);
-  const { allNfts } = superCoolContext;
+  const { allNftsCollection } = superCoolContext;
   const dispatch = useDispatch();
   // console.log(allNfts);
 
@@ -50,21 +50,21 @@ const BidsCarousel = () => {
         }}
         className=" card-slider-4-columns !py-5"
       >
-        {allNfts && allNfts.map((item) => {
+        {allNftsCollection && allNftsCollection.map((item) => {
           // console.log(item, 'item');
 
           return (
-            <SwiperSlide key={item.tokenId} className="text-white" >
+            <SwiperSlide key={item.tokenid} className="text-white" >
               <article>
                 <div className="dark:bg-jacarta-700 dark:border-jacarta-700 border-jacarta-100 rounded-2xl block border bg-white p-[1.1875rem] transition-shadow hover:shadow-lg text-jacarta-500">
                   <figure>
                     {/* <Link href={"/item/" + itemLink}> */}
                     <a>
                       <div className="w-full">
-                        <Link href={`/item/${item.tokenId}`}>
+                        <Link href={`/item/${item.collectionAddress}`}>
                           <img
                             src={item.image}
-                            alt={item.title}
+                            alt={item.name}
                             // height={250}
                             width={230}
                             layout="responsive"
@@ -81,7 +81,7 @@ const BidsCarousel = () => {
                   <div className="mt-4 flex items-center justify-between">
                     <a>
                       <span className="font-display text-jacarta-700 hover:text-accent text-base dark:text-white">
-                        {item.title}
+                        {item.name}
                       </span>
                     </a>
                     <span className="dark:border-jacarta-600 border-jacarta-100 flex items-center whitespace-nowrap rounded-md border py-1 px-2">
