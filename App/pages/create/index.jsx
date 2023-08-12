@@ -14,15 +14,16 @@ import RendersellNft from "../renderSellNft/renderSellNft";
 
 import { BaseError, Address, parseEther } from "viem";
 import { zoraNftCreatorV1Config } from "@zoralabs/nft-drop-contracts";
+import { erc721DropABI } from "@zoralabs/nft-drop-contracts"; 
 
 
 const Create = () => {
   const superCoolContext = React.useContext(SupercoolAuthContext);
-  const { uploadOnIpfs, maticToUsdPricee, loading, provider, setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
+  const { uploadOnIpfs,storeCollection, maticToUsdPricee, loading, provider, setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Profile avatar" || category);
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("0.1");
+  const [price, setPrice] = useState();
   const [chain, setChain] = useState("Ethereum" || chain);
   const [rendersellNFT, setrendersellNFT] = useState(false)
   const [imageUrl, setImageUrl] = useState('');
@@ -30,6 +31,7 @@ const Create = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [generateLoading, setGenerateLoading] = useState(false);
   const [mintLoading, setMintLoading] = useState(false);
+  const [collectionAddress, setCollectionAddress] = useState(false);
 
   const imgRef = useRef();
   const [placeholder, setPlaceholder] = useState(
@@ -74,19 +76,18 @@ const Create = () => {
     // console.log('cur add--',zoraNftCreatorV1Config.abi);
 
     const symbol = "MNFT";
-    const editionSize = 1n;
+    const editionSize = 2n;
     const royaltyBps = 0;
     const fundsRecipient = address;
     const defaultAdmin = address;
     const animationUri = "0x0";
 
     const maxSalePurchasePerAddress = 1;
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner(address);
+
     let contract;
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner(address);
-      console.log(signer);
-  
        contract = new ethers.Contract(
         zoraNftCreatorV1Config.address[999],
         zoraNftCreatorV1Config.abi,
@@ -121,12 +122,33 @@ const Create = () => {
       );
 
        const receipt = await tx.wait();
-        console.log('recept--',receipt);
+        console.log('recept--',receipt,receipt.events[0].address);
 
+        if(receipt.status == 1){
+          let con = new ethers.Contract(
+            receipt.events[0].address,
+            erc721DropABI,
+            signer
+          );  
+
+          let fee = 0.000777;
+          let p = Number(price);
+          let val = fee + p;
+            console.log('value--',val);
+          const txx = await con.purchase( 1, { value: ethers.utils.parseUnits(val.toString(), "ether") })
+          const res = await txx.wait();
+
+          if(res.status == 1){
+        await storeCollection(receipt.events[0].address);
+
+          }
+        }
+
+       
     } catch (e) {
       console.error("Failed to mint NFT: " + e.message);
     }
-
+   
   }
 
 
