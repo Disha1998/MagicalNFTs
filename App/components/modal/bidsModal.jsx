@@ -5,27 +5,29 @@ import { SupercoolAuthContext } from "../../context/supercoolContext";
 import { useRouter } from 'next/router';
 import { ethers } from "ethers";
 import { CircularProgress } from "@mui/material";
-import { SUPER_COOL_NFT_CONTRACT, abi } from "../../constant/constant";
+import { erc721DropABI } from "@zoralabs/nft-drop-contracts";
 
 const BidsModal = () => {
   const { bidsModal } = useSelector((state) => state.counter);
   const dispatch = useDispatch();
   const superCoolContext = React.useContext(SupercoolAuthContext);
-  const { allNfts} = superCoolContext;
+  const { allNfts } = superCoolContext;
   const [buyLoading, setBuyLoading] = useState(false);
 
-  const purchaseNft = async (_tokenId, _price) => {
+  const purchaseNft = async (_price, _collection) => {
+
+
     setBuyLoading(true);
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
+    const signer = provider.getSigner(localStorage.getItem('address'));
 
     const contract = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
+      _collection,
+      erc721DropABI,
       signer
     );
     try {
-      const tx = await contract.buyToken(_tokenId, { value: ethers.utils.parseUnits(_price.toString(), "ether") });
+      const tx = await contract.purchase( 1, { value: ethers.utils.parseUnits(_price.toString(), "ether") });
       await tx.wait();
 
     } catch (error) {
@@ -107,18 +109,18 @@ const BidsModal = () => {
 
                     <div className="modal-footer">
                       <div className="flex items-center justify-center space-x-4">
-                      {
-                        buyLoading ? 
-                        <CircularProgress />
-                        :
-                        <button
-                          onClick={() => purchaseNft(item.tokenId, item.price)}
-                          type="button"
-                          className="text-accent shadow-white-volume hover:bg-accent-dark hover:shadow-accent-volume w-36 rounded-full bg-white py-3 px-8 text-center font-semibold transition-all hover:text-white"
-                        >
-                          Purchase
-                        </button>
-                      }
+                        {
+                          buyLoading ?
+                            <CircularProgress />
+                            :
+                            <button
+                              onClick={() => purchaseNft(item.price, item.collectionAddress)}
+                              type="button"
+                              className="text-accent shadow-white-volume hover:bg-accent-dark hover:shadow-accent-volume w-36 rounded-full bg-white py-3 px-8 text-center font-semibold transition-all hover:text-white"
+                            >
+                              Purchase
+                            </button>
+                        }
                       </div>
                     </div>
                   </div>

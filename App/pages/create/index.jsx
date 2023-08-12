@@ -14,12 +14,12 @@ import RendersellNft from "../renderSellNft/renderSellNft";
 
 import { BaseError, Address, parseEther } from "viem";
 import { zoraNftCreatorV1Config } from "@zoralabs/nft-drop-contracts";
-import { erc721DropABI } from "@zoralabs/nft-drop-contracts"; 
+import { erc721DropABI } from "@zoralabs/nft-drop-contracts";
 
 
 const Create = () => {
   const superCoolContext = React.useContext(SupercoolAuthContext);
-  const { uploadOnIpfs,storeCollection, maticToUsdPricee, loading, provider, setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
+  const { fetchAllCollections, storeCollection, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Profile avatar" || category);
   const [description, setDescription] = useState("");
@@ -72,6 +72,7 @@ const Create = () => {
 
 
   const createNftCol = async () => {
+    setMintLoading(true);
     const address = localStorage.getItem('address');
     // console.log('cur add--',zoraNftCreatorV1Config.abi);
 
@@ -88,15 +89,17 @@ const Create = () => {
 
     let contract;
     try {
-       contract = new ethers.Contract(
+      contract = new ethers.Contract(
         zoraNftCreatorV1Config.address[999],
         zoraNftCreatorV1Config.abi,
         signer
-      );  
+      );
     } catch (e) {
       console.error("Failed to instatiate contract: " + e.message);
+      setMintLoading(false);
+
     }
-    
+
     try {
       const tx = await contract.createEdition(
         title,
@@ -121,34 +124,39 @@ const Create = () => {
 
       );
 
-       const receipt = await tx.wait();
-        console.log('recept--',receipt,receipt.events[0].address);
+      const receipt = await tx.wait();
+      console.log('recept--', receipt, receipt.events[0].address);
 
-        if(receipt.status == 1){
-          let con = new ethers.Contract(
-            receipt.events[0].address,
-            erc721DropABI,
-            signer
-          );  
+      if (receipt.status == 1) {
+        let con = new ethers.Contract(
+          receipt.events[0].address,
+          erc721DropABI,
+          signer
+        );
 
-          let fee = 0.000777;
-          let p = Number(price);
-          let val = fee + p;
-            console.log('value--',val);
-          const txx = await con.purchase( 1, { value: ethers.utils.parseUnits(val.toString(), "ether") })
-          const res = await txx.wait();
+        let fee = 0.000777;
+        let p = Number(price);
+        let val = fee + p;
+        console.log('value--', val);
+        const txx = await con.purchase(1, { value: ethers.utils.parseUnits(val.toString(), "ether") })
+        const res = await txx.wait();
 
-          if(res.status == 1){
-        await storeCollection(receipt.events[0].address);
+        if (res.status == 1) {
+          await storeCollection(receipt.events[0].address);
+          await fetchAllCollections();
+          setMintLoading(false);
 
-          }
         }
+        setMintLoading(false);
 
-       
+      }
+
+
     } catch (e) {
       console.error("Failed to mint NFT: " + e.message);
+      setMintLoading(false);
     }
-   
+
   }
 
 
@@ -228,71 +236,6 @@ const Create = () => {
       setGenerateLoading(false);
     }
   };
-  // JD CORS Solution END ------------------- 
-
-
-
-  const mintNft = async (_price, _metadataurl) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-
-    const contract = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
-      signer
-    );
-
-    try {
-      const tx = await contract.mintNFT(_price, _metadataurl);
-      await tx.wait();
-    } catch (e) {
-      console.error("Failed to mint NFT: " + e.message);
-    }
-    await getAllNfts()
-    setLoading(!loading);
-    setMintLoading(false);
-    setImages([]);
-    setTitle('');
-    setDescription('');
-    setPrice('');
-    setrendersellNFT(false);
-  };
-
-
-  const totalNfts = async () => {
-    const contractPro = new ethers.Contract(
-      SUPER_COOL_NFT_CONTRACT,
-      abi,
-      provider
-    );
-    const numOfNfts = await contractPro.getTotalSupply();
-    return Number(numOfNfts) + 1;
-  }
-
-
-  const createNft = async () => {
-
-    const maticToUsd = await maticToUsdPricee(price)
-    console.log(maticToUsd._hex / 100000000);
-    let tokenid = await totalNfts();
-    const nftData = {
-      title: title,
-      description: description,
-      price: price,
-      chain: chain,
-      image: selectedImage,
-      category: category,
-      owner: localStorage.getItem('address'),
-      tokenId: tokenid,
-      maticToUSD: maticToUsd._hex / 100000000
-    }
-
-    console.log(nftData);
-    setMintLoading(true);
-    let metadataurl = await uploadOnIpfs(nftData);
-    await storeDataInFirebase(metadataurl);
-    await mintNft(ethers.utils.parseUnits(nftData.price?.toString(), "ether"), metadataurl);
-  }
 
   function handleSelectedImg(url) {
     setrendersellNFT(false);
@@ -427,7 +370,7 @@ const Create = () => {
                       <ImageModal setModalOpen={setModalOpen}
                         selectedImage={selectedImage}
                         setSelectedImage={setSelectedImage}
-                        createNft={createNft}
+                        // createNft={createNft}
                         setrendersellNFT={setrendersellNFT}
                       />
                     </div>

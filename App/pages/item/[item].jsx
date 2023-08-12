@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-// import Auctions_dropdown from '../../components/dropdown/Auctions_dropdown';
 import Link from 'next/link';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
@@ -13,6 +12,9 @@ import { useDispatch } from 'react-redux';
 import { bidsModalShow } from '../../redux/counterSlice';
 import { SupercoolAuthContext } from '../../context/supercoolContext';
 import { ethers } from 'ethers';
+import { erc721DropABI } from "@zoralabs/nft-drop-contracts";
+import CircularProgress from '@mui/material/CircularProgress';
+
 const Item = () => {
 	const dispatch = useDispatch();
 	const router = useRouter();
@@ -22,8 +24,29 @@ const Item = () => {
 	const [maticToUSD, setMaticToUSD] = useState();
 	const superCoolContext = React.useContext(SupercoolAuthContext);
 	const { allNftsCollection } = superCoolContext;
+	const [buyLoading, setBuyLoading] = useState(false);
 
+	const purchaseNft = async (_price, _collection) => {
 
+		setBuyLoading(true);
+		const provider = new ethers.providers.Web3Provider(window.ethereum);
+		const signer = provider.getSigner(localStorage.getItem('address'));
+	
+		const contract = new ethers.Contract(
+		  _collection,
+		  erc721DropABI,
+		  signer
+		);
+		try {
+		  const tx = await contract.purchase( 1, { value: ethers.utils.parseUnits(_price.toString(), "ether") });
+		  await tx.wait();
+	
+		} catch (error) {
+		  console.error(error);
+		setBuyLoading(false);
+	}
+		setBuyLoading(false);
+	  }
 	return (
 		<>
 			<Meta title={`${cid} || Xhibiter | NFT Marketplace Next.js Template`} />
@@ -157,15 +180,24 @@ const Item = () => {
 										</div>
 
 										{/* <!-- Bid --> */}
-										<div className="dark:bg-jacarta-700 dark:border-jacarta-600 border-jacarta-100 rounded-2lg border bg-white p-8">
-
-											<button
-												className="bg-accent shadow-accent-volume hover:bg-accent-dark inline-block w-full rounded-full py-3 px-8 text-center font-semibold text-white transition-all"
-												onClick={() => dispatch(bidsModalShow())}
-											>
-												Purchase NFT
-											</button>
+									{
+										buyLoading ? 
+										<div style={{marginLeft:"243px",marginTop:"41px"} }>
+										<CircularProgress/>
 										</div>
+										:
+										// <div className="dark:bg-jacarta-700 dark:border-jacarta-600 border-jacarta-100 rounded-2lg border bg-white p-8">
+
+										<button
+										className="bg-accent shadow-accent-volume hover:bg-accent-dark inline-block w-full rounded-full py-3 px-8 text-center font-semibold text-white transition-all"
+										onClick={() => purchaseNft(item.price, item.collectionAddress)}
+									>
+										Purchase NFT 
+									</button>
+									// </div>
+
+									}
+										
 										{/* <!-- end bid --> */}
 									</div>
 									{/* <!-- end details --> */}
