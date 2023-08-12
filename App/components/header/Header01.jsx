@@ -197,7 +197,7 @@ export default function Header01() {
           <Link className="shrink-0" href="/">
             <p className="text-jacarta-700 font-bold font-display mb-6 text-center text-2xl dark:text-white md:text-left lg:text-2xl xl:text-2xl animate-gradient">
               {/* Buy, sell and collect NFTs. */}
-              Supercool AI
+             Magical NFTs
             </p>
           </Link>
 

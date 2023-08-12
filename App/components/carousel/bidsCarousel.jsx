@@ -13,6 +13,8 @@ import { bidsModalShow } from "../../redux/counterSlice";
 import { useDispatch } from "react-redux";
 import Likes from "../likes";
 import React from "react";
+import { NFTPreview } from "@zoralabs/nft-components";
+import { useZNFT, useNFTMetadata } from "@zoralabs/nft-hooks"
 
 const BidsCarousel = () => {
   const superCoolContext = React.useContext(SupercoolAuthContext);
@@ -54,77 +56,79 @@ const BidsCarousel = () => {
           // console.log(item, 'item');
 
           return (
-            <SwiperSlide key={item.tokenId} className="text-white" >
-              <article>
-                <div className="dark:bg-jacarta-700 dark:border-jacarta-700 border-jacarta-100 rounded-2xl block border bg-white p-[1.1875rem] transition-shadow hover:shadow-lg text-jacarta-500">
-                  <figure>
-                    {/* <Link href={"/item/" + itemLink}> */}
-                    <a>
-                      <div className="w-full">
-                        <Link href={`/item/${item.tokenId}`}>
+            <NFTPreview>
+              <SwiperSlide key={item.tokenId} className="text-white" >
+                <article>
+                  <div className="dark:bg-jacarta-700 dark:border-jacarta-700 border-jacarta-100 rounded-2xl block border bg-white p-[1.1875rem] transition-shadow hover:shadow-lg text-jacarta-500">
+                    <figure>
+                      {/* <Link href={"/item/" + itemLink}> */}
+                      <a>
+                        <div className="w-full">
+                          <Link href={`/item/${item.tokenId}`}>
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              // height={250}
+                              width={230}
+                              layout="responsive"
+                              objectFit="cover"
+                              className="rounded-[0.625rem] w-full"
+                              loading="lazy"
+                              style={{ height: "250px" }}
+                            />
+                          </Link>
+                        </div>
+                      </a>
+                      {/* </Link> */}
+                    </figure>
+                    <div className="mt-4 flex items-center justify-between">
+                      <a>
+                        <span className="font-display text-jacarta-700 hover:text-accent text-base dark:text-white">
+                          {item.title}
+                        </span>
+                      </a>
+                      <span className="dark:border-jacarta-600 border-jacarta-100 flex items-center whitespace-nowrap rounded-md border py-1 px-2">
+                        <Tippy content={<span>ETH</span>}>
                           <img
-                            src={item.image}
-                            alt={item.title}
-                            // height={250}
-                            width={230}
-                            layout="responsive"
-                            objectFit="cover"
-                            className="rounded-[0.625rem] w-full"
-                            loading="lazy"
-                            style={{height:"250px"}}
+                            src="/images/eth-icon.svg"
+                            alt=""
+                            className="w-3 h-3 mr-1"
                           />
-                        </Link>
-                      </div>
-                    </a>
-                    {/* </Link> */}
-                  </figure>
-                  <div className="mt-4 flex items-center justify-between">
-                    <a>
-                      <span className="font-display text-jacarta-700 hover:text-accent text-base dark:text-white">
-                        {item.title}
+                        </Tippy>
+
+                        <span className="text-green text-sm font-medium tracking-tight">
+                          {item.price}
+                          ETH
+                        </span>
                       </span>
-                    </a>
-                    <span className="dark:border-jacarta-600 border-jacarta-100 flex items-center whitespace-nowrap rounded-md border py-1 px-2">
-                      <Tippy content={<span>ETH</span>}>
-                        <img
-                          src="/images/eth-icon.svg"
-                          alt=""
-                          className="w-3 h-3 mr-1"
-                        />
-                      </Tippy>
-
-                      <span className="text-green text-sm font-medium tracking-tight">
-                        {item.price}
-                        ETH
+                    </div>
+                    <div className="mt-2 text-sm">
+                      <span className="dark:text-jacarta-300 text-jacarta-500">
+                        {item.description}
                       </span>
-                    </span>
-                  </div>
-                  <div className="mt-2 text-sm">
-                    <span className="dark:text-jacarta-300 text-jacarta-500">
-                      {item.description}
-                    </span>
-                    <span className="dark:text-jacarta-100 text-jacarta-700">
-                      {/* {bid_number} ETH */}
-                    </span>
-                  </div>
+                      <span className="dark:text-jacarta-100 text-jacarta-700">
+                        {/* {bid_number} ETH */}
+                      </span>
+                    </div>
 
-                  <div className="mt-8 flex items-center justify-between">
-                    <button
-                      type="button"
-                      className="text-accent font-display text-sm font-semibold"
-                      onClick={() => dispatch(bidsModalShow())}
-                    >
-                      Purchase
-                    </button>
+                    <div className="mt-8 flex items-center justify-between">
+                      <button
+                        type="button"
+                        className="text-accent font-display text-sm font-semibold"
+                        onClick={() => dispatch(bidsModalShow())}
+                      >
+                        Purchase
+                      </button>
 
-                    <Likes
-                      like="98"
-                      classes="flex items-center space-x-1"
-                    />
+                      <Likes
+                        like="98"
+                        classes="flex items-center space-x-1"
+                      />
+                    </div>
                   </div>
-                </div>
-              </article>
-            </SwiperSlide>
+                </article>
+              </SwiperSlide>
+            </NFTPreview>
           );
         })}
       </Swiper>

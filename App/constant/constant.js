@@ -1,6 +1,10 @@
 const WEATHER_API_CONTRACT = "0xE1c9f4acc7ea084D4891819B962157B3B1E8578a" //deployed on zora-sepolia
 export const SUPER_COOL_NFT_CONTRACT = "0x8b0B87e6C1D2F7Bb513C08aD268F97B89f3561E5"//deployed on zora-sepolia
 
+// deploy weatherAPI contract to 0x58d8b6555C52b2Dd5348e8Bf23F528829fd97506 //Base-goerli testnet
+// deploy SuperCool contract to 0xB34aA6Dccfad6Fba21C1716c3100F1d9c92c1674//Base-goerli testnet
+
+
 // export const SUPER_COOL_NFT_CONTRACT = "0xe98C5C2cD9E16D177373BC44CC3058Fbd1Cae15A"
 export const abi = [
   {

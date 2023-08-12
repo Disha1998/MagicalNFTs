@@ -4,7 +4,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   env: {
-    apiKey: "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",
+    apiKey: "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",
     infuraProjectKey: "2DQRq820rLbznhFlkIbTkuYAyCS",
     infuraSecretKey: "33d97cf6366f9565421e36ff7e018e60",
     privateKey: "022cee959834961a1d85fe253789846d986ed1e375ea7f5cf5d2d170e1b31e7c",

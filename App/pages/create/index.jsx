@@ -14,7 +14,7 @@ import RendersellNft from "../renderSellNft/renderSellNft";
 
 const Create = () => {
   const superCoolContext = React.useContext(SupercoolAuthContext);
-  const { uploadOnIpfs, maticToUsdPricee, loading, provider,setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts,storeDataInFirebase } = superCoolContext;
+  const { uploadOnIpfs, maticToUsdPricee, loading, provider, setLoading, GenerateNum, prompt, setPrompt, genRanImgLoding, getAllNfts, storeDataInFirebase } = superCoolContext;
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Profile avatar" || category);
   const [description, setDescription] = useState("");
@@ -125,13 +125,13 @@ const Create = () => {
 
   const mintNft = async (_price, _metadataurl) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner(); 
-    
+    const signer = provider.getSigner();
+
     const contract = new ethers.Contract(
       SUPER_COOL_NFT_CONTRACT,
       abi,
       signer
-    ); 
+    );
 
     try {
       const tx = await contract.mintNFT(_price, _metadataurl);
@@ -163,9 +163,10 @@ const Create = () => {
 
   const createNft = async () => {
 
-  const maticToUsd = await maticToUsdPricee(price)
-  console.log(maticToUsd._hex / 100000000);
-  let tokenid = await totalNfts();
+    const maticToUsd = await maticToUsdPricee(price)
+    console.log(maticToUsd._hex / 100000000);
+    let tokenid = await totalNfts();
+    console.log('tokenid', tokenid);
     const nftData = {
       title: title,
       description: description,
@@ -175,14 +176,14 @@ const Create = () => {
       category: category,
       owner: localStorage.getItem('address'),
       tokenId: tokenid,
-      maticToUSD:maticToUsd._hex / 100000000
+      maticToUSD: maticToUsd._hex / 100000000
     }
-    
+
     console.log(nftData);
     setMintLoading(true);
     let metadataurl = await uploadOnIpfs(nftData);
     await storeDataInFirebase(metadataurl);
-   await mintNft(ethers.utils.parseUnits(nftData.price?.toString(), "ether"), metadataurl);
+    await mintNft(ethers.utils.parseUnits(nftData.price?.toString(), "ether"), metadataurl);
   }
 
   function handleSelectedImg(url) {

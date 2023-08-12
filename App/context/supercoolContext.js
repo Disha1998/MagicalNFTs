@@ -8,6 +8,9 @@ import { RandomPrompts } from "../components/RandomImgs";
 import axios from 'axios';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
+import { ZDK, ZDKNetwork, ZDKChain } from "@zoralabs/zdk";
+import { Strategies, Networks } from '@zoralabs/nft-hooks'
+
 
 import { getDatabase, ref, set } from "firebase/database";
 export const SupercoolAuthContext = createContext(undefined);
@@ -23,10 +26,30 @@ export const SupercoolAuthContextProvider = (props) => {
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
 
-  console.log(allNfts);
+  // console.log(allNfts);
   useEffect(() => {
     getSignerFromProvider();
   }, [])
+
+
+  // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora 
+
+  const networkInfo = {
+    network: ZDKNetwork.Zora,
+    chain: ZDKChain.ZoraGoerli,
+  }
+
+  const API_ENDPOINT = "https://api.zora.co/graphql";
+  const args = {
+    endPoint: API_ENDPOINT,
+    networks: [networkInfo],
+    // apiKey: process.env.API_KEY
+  }
+
+  const zdk = new ZDK(args) // All arguments are optional
+
+  // Zora  // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora   // Zora 
+
 
 
   const firebaseConfig = {
@@ -58,7 +81,7 @@ export const SupercoolAuthContextProvider = (props) => {
   // totalNfts()
   async function storeDataInFirebase(metadataUrl) {
     let tokenid = await totalNfts();
-    console.log(tokenid);
+    console.log(tokenid, '-----tokenid');
     const newData = {
       id: tokenid,
       url: metadataUrl
@@ -66,6 +89,45 @@ export const SupercoolAuthContextProvider = (props) => {
     const docRef = await addDoc(collectionRef, newData);
     console.log("Data stored successfully! Document ID:", docRef.id);
   }
+
+  // 0x9b3bb95f64e59c6429b1a7bc6659c7f0e5f437cb //2nd nft
+
+  const address = '0x466aCA3325F7D5da77b05D1683D98aA498319Dd6'
+
+  const getCollection = async () => {
+    try {
+      const getdata = await zdk.collection(
+        { address }
+      );
+      console.log('getdata--------------', getdata);
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  getCollection();
+
+
+  // const getMintData = async () => {
+  //   let tokenid = await totalNfts();
+  //   console.log('tokenid===>', tokenid);
+  //   console.log('mints',mints);
+  //   const { mints } = await zdk.mints({
+  //     where: {
+  //       tokens: [
+  //         {
+  //           address: 0x8b0B87e6C1D2F7Bb513C08aD268F97B89f3561E5,
+  //           tokenid,
+  //         },
+  //       ],
+  //     },
+  //     includeFullDetails: true,
+  //   });
+  //   return {
+  //     mints,
+  //   };
+  // };
+  // getMintData();
   // storeDataInFirebase()
 
 
@@ -168,7 +230,7 @@ export const SupercoolAuthContextProvider = (props) => {
     console.log('use add--', add);
     if (add !== undefined) {
       const dataurl = await contract.getUserProfile(add);
-      console.log(dataurl);
+      // console.log(dataurl);
       const response = await axios.get(dataurl);
       // console.log(response.data);
       return response;
@@ -179,11 +241,11 @@ export const SupercoolAuthContextProvider = (props) => {
     try {
       const querySnapshot = await getDocs(collectionRef);
       const data = querySnapshot.docs.map((doc) => doc.data());
-      console.log("Fetched data:", data);
+      // console.log("Fetched data:", data);
       const metadatas = [];
 
       for (let i = 0; i <= data.length - 1; i++) {
-        console.log(data[i], '------------');
+        // console.log(data[i], '------------');
         let tokenURI = data[i].url;
         // console.log(tokenURI);
         const response = await fetch(tokenURI);
@@ -254,7 +316,7 @@ export const SupercoolAuthContextProvider = (props) => {
           },
         }
       );
-      console.log(response.data.choices[0].text);
+      // console.log(response.data.choices[0].text);
       setPrompt(response.data.choices[0].text);
       // return response.data.choices[0].text;
     } catch (error) {
@@ -284,7 +346,8 @@ export const SupercoolAuthContextProvider = (props) => {
         generateText,
         storeDataInFirebase,
         maticToUsdPricee,
-        provider
+        provider,
+        zdk
       }}
       {...props}
     >
